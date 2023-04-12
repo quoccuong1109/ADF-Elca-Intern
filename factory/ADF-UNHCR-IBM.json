@@ -1,0 +1,9 @@
+{
+	"name": "ADF-UNHCR-IBM",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7bd6cde6-3d86-4fbf-88ca-d7374cef6f27",
+		"tenantId": "7bbbced8-b31a-4a36-95bb-9f06bc9d72a6"
+	}
+}
