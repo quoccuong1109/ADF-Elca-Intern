@@ -1,0 +1,39 @@
+{
+	"name": "ADLS_Lego_ConfigurationFile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_phucelcadls",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "LegoConfigurationFile.csv",
+				"fileSystem": "logo"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	}
+}

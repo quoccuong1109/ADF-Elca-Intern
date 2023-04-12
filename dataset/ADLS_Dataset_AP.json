@@ -1,0 +1,42 @@
+{
+	"name": "ADLS_Dataset_AP",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_phucelcadls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileNameCsv": {
+				"type": "string",
+				"defaultValue": "fileNameCsv"
+			},
+			"schema": {
+				"type": "string",
+				"defaultValue": "schema"
+			}
+		},
+		"folder": {
+			"name": "DIL"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().fileNameCsv",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().schema",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

@@ -1,0 +1,69 @@
+{
+	"name": "HTTP_to_ADLS_then_SQLServer",
+	"properties": {
+		"description": "Orchestration pipeline executes pipelines to copy and transform data",
+		"activities": [
+			{
+				"name": "Execute HTTP to ADLS",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Lego_HTTP_to_ADLS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Filename": {
+							"value": "@pipeline().parameters.fileName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Execute ADLS to SQLServer on phucelca PC",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute HTTP to ADLS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy from ADLS to SQL",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ADLS_fileName": {
+							"value": "@pipeline().parameters.fileName",
+							"type": "Expression"
+						},
+						"SQLServer_fileName": {
+							"value": "@pipeline().parameters.fileName",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"fileName": {
+				"type": "string",
+				"defaultValue": "fileName"
+			}
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-30T07:19:23Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

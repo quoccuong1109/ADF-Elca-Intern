@@ -1,0 +1,35 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"folder": {
+			"name": "Self Training"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Full_By",
+						"type": "DatasetReference"
+					},
+					"name": "FullSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Full_By_DataFlow",
+						"type": "DatasetReference"
+					},
+					"name": "Load"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"script": "parameters{\n\tfileName as string ($fileName)\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tdateFormats: ['MM/dd/yyyy'],\n\twildcardPaths:[($fileName)]) ~> FullSource\nFullSource alterRow() ~> AlterRow1\nAlterRow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> Load"
+		}
+	}
+}

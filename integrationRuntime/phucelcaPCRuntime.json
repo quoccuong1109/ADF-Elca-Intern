@@ -1,0 +1,7 @@
+{
+	"name": "phucelcaPCRuntime",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Self-hosted integration running on Phuc Pc"
+	}
+}

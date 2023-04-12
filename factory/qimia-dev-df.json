@@ -1,0 +1,9 @@
+{
+	"name": "qimia-dev-df",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "6a2c7f07-316b-4fd6-a88d-172ccf3f18e2",
+		"tenantId": "01c79161-4c7f-481e-8511-d45615e6f78d"
+	}
+}

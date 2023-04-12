@@ -1,0 +1,17 @@
+{
+	"name": "SQL_phucelca_Entertainment",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "coonection to the Entertainment database on SQL Server 2019 on phucelca PC",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=PC22079;initial catalog=Entertainment;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJlNWI3M2U1ZS1jNzAyLTQwYmItYTNmNy1iYzdhOWQxM2U2ZGUiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "phucelcaPCRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

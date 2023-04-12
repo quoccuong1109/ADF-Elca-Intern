@@ -1,0 +1,333 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"ABLB_phucelcablob": {
+			"type": "string"
+		},
+		"Http_lego": {
+			"type": "string"
+		},
+		"ADLS_phucelcadls": {
+			"type": "string"
+		},
+		"ASQL_phucelca_database": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Orchestration_Lego')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Orchestration pipeline executes pipelines to copy and transform data",
+				"activities": [
+					{
+						"name": "Execute HTTP to ADLS",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Lego_HTTP_to_ADLS_Themes",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true
+						}
+					},
+					{
+						"name": "Execute ADLS to ASQL",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Execute HTTP to ADLS",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Lego_ADLS_to_ASQL_Themes",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true
+						}
+					}
+				],
+				"annotations": [],
+				"lastPublishTime": "2021-06-30T07:19:23Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_to_ADLS_Themes')]",
+				"[concat(variables('factoryId'), '/pipelines/Lego_ADLS_to_ASQL_Themes')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_HTTP_to_ADLS_Themes')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Copy themes.csv from http to ADLS",
+				"activities": [
+					{
+						"name": "Copy Themes form HTTP to ADLS",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "themes.csv.gz"
+							},
+							{
+								"name": "Destination",
+								"value": "logo//themes.csv"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings",
+									"skipLineCount": 0
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"logSettings": {
+								"enableCopyActivityLog": true,
+								"copyActivityLogSettings": {
+									"logLevel": "Warning",
+									"enableReliableLogging": false
+								},
+								"logLocationSettings": {
+									"linkedServiceName": {
+										"referenceName": "[parameters('ABLB_phucelcablob')]",
+										"type": "LinkedServiceReference"
+									},
+									"path": "lego/errors/themes"
+								}
+							},
+							"dataIntegrationUnits": 2
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_xy8",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_xy8",
+								"type": "DatasetReference"
+							}
+						]
+					}
+				],
+				"concurrency": 1,
+				"annotations": [
+					"Extract"
+				],
+				"lastPublishTime": "2021-07-01T04:02:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SourceDataset_xy8')]",
+				"[concat(variables('factoryId'), '/datasets/DestinationDataset_xy8')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_ADLS_to_ASQL_Themes')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lego_ADLS_to_ASQL_Themes",
+						"description": "extract themes data from ADLS, add column and load into ASQL",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"annotations": [],
+				"lastPublishTime": "2021-06-30T06:41:51Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceDataset_xy8')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('Http_lego')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "themes.csv.gz"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"compressionCodec": "gzip",
+					"compressionLevel": "Optimal",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "parent_id",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DestinationDataset_xy8')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('ADLS_phucelcadls')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "themes.csv",
+						"fileSystem": "logo"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DestinationDataset_xy8",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSLegoThemes"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ASQL_lego_Themes",
+								"type": "DatasetReference"
+							},
+							"name": "ASQLLegoThemes"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AddLoadteDate"
+						}
+					],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSLegoThemes\nADLSLegoThemes derive(load_date = currentDate()) ~> AddLoadteDate\nAddLoadteDate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> ASQLLegoThemes"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DestinationDataset_xy8')]",
+				"[concat(variables('factoryId'), '/datasets/ASQL_lego_Themes')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ASQL_lego_Themes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('ASQL_phucelca_database')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "lego",
+					"table": "themes"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

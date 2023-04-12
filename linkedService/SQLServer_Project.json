@@ -1,0 +1,17 @@
+{
+	"name": "SQLServer_Project",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "connect to SQLServer",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=localhost;initial catalog=Board;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJiNjU3NGI3Yy1lZDg2LTRmNDItOGViZS02NTg3ODFiYTEzOTEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "phucelcaPCRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

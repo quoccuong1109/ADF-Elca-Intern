@@ -1,0 +1,28 @@
+{
+	"name": "Full_By_DataFlow",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "string",
+				"defaultValue": "fileName"
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dil",
+			"table": {
+				"value": "@dataset().fileName",
+				"type": "Expression"
+			}
+		}
+	}
+}

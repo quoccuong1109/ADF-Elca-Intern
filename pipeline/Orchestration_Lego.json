@@ -1,0 +1,47 @@
+{
+	"name": "Orchestration_Lego",
+	"properties": {
+		"description": "Orchestration pipeline executes pipelines to copy and transform data",
+		"activities": [
+			{
+				"name": "Execute HTTP to ADLS",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Lego_HTTP_to_ADLS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute ADLS to ASQL",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute HTTP to ADLS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Lego_ADLS_to_ASQL_Themes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-30T07:19:23Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

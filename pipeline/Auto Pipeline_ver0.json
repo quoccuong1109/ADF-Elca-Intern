@@ -1,0 +1,336 @@
+{
+	"name": "Auto Pipeline_ver0",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Configuration File",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Check option",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select FileName from TrafficCop.@{variables('fileNameLookUp')}\nwhere IsTracked = 0;\nupdate TrafficCop.@{variables('fileNameLookUp')}\nset IsTracked = 1;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@variables('fileNameLookUp')",
+								"type": "Expression"
+							},
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Check option",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.option, '0')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set variable2",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "fileNameLookUp",
+								"value": "Fact"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Set variable1",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "fileNameLookUp",
+								"value": "Dimension"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach FileName",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Configuration File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Configuration File').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Switch",
+							"type": "Switch",
+							"dependsOn": [
+								{
+									"activity": "Set fileNameItem",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@substring(variables('fileNameItem'), 0, indexof(variables('fileNameItem'), '_'))",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "ImpactArea",
+										"activities": [
+											{
+												"name": "Execute ImpactArea",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "Auto Processing - ImpactArea",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "OperationType",
+										"activities": [
+											{
+												"name": "Execute OperationType",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "OutcomeEnablingArea",
+										"activities": [
+											{
+												"name": "Execute OutcomeEnablingArea",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "PlanCountry",
+										"activities": [
+											{
+												"name": "Execute PlanCountry",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "Plan",
+										"activities": [
+											{
+												"name": "Execute Plan",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "Strategy",
+										"activities": [
+											{
+												"name": "Execute Strategy",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "ImpactStatement",
+										"activities": [
+											{
+												"name": "Execute ImpactStatement",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "OutcomeStatement",
+										"activities": [
+											{
+												"name": "Execute OutcomeStatement",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									},
+									{
+										"value": "OutputStatement",
+										"activities": [
+											{
+												"name": "Execute OutputStatement",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pipeline1",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true
+												}
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "Set fileNameItem",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "fileNameItem",
+								"value": {
+									"value": "@item().FileName",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Auto Processing - ImpactArea",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"option": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
+		"variables": {
+			"fileNameLookUp": {
+				"type": "String",
+				"defaultValue": "fileNameLookUp"
+			},
+			"fileNameItem": {
+				"type": "String",
+				"defaultValue": "fileNameItem"
+			}
+		},
+		"folder": {
+			"name": "BoardToDIL_ver1"
+		},
+		"annotations": []
+	}
+}

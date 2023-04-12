@@ -1,0 +1,255 @@
+{
+	"name": "Auto Processing - OutcomeStatement",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup OutcomeStatement File",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select FileName from TrafficCop.Fact\nwhere IsTracked = 0 and FileName like 'OutcomeStatement%';\nupdate TrafficCop.Fact\nset IsTracked = 1\nwhere IsTracked = 0 and FileName like 'OutcomeStatement%';",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "Fact",
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach OutcomeStatement File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup OutcomeStatement File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup OutcomeStatement File').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy from SQLServer to SQLServer",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Outcome Statement",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OutcomeStatement",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Operation ABC",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ABCCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Strategy ID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "StrategyCode",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Impact Statement",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ImpactStatement",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Outcome Area",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OutcomeArea",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Operation 2 char",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "2CharABCCode",
+												"type": "String",
+												"physicalType": "char"
+											}
+										},
+										{
+											"source": {
+												"name": "Plan",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Plan",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Outcome Statement Name",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OutcomeStatementShortDescr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Outcome Statement Long Descr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OutcomeStatementLongDescr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "MSRP Code",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "MSRPCode",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Date_Time",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Date_Time",
+												"type": "DateTime",
+												"physicalType": "datetime"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": true,
+										"dateTimeFormat": "dd/MM/yyyy HH:mm:ss"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SQLServer_Board_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": {
+											"value": "@item().FileName",
+											"type": "Expression"
+										},
+										"schema": "full_by_ext_final"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SQLServer_DIL_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": "OutcomeStatement",
+										"schema": "tem"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "BoardToDIL_ver1"
+		},
+		"annotations": []
+	}
+}

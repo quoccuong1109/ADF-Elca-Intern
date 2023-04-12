@@ -1,0 +1,129 @@
+{
+	"name": "Test forech",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set Files",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Files",
+					"value": [
+						"colors",
+						"inventories",
+						"inventory_parts",
+						"part_categories",
+						"parts",
+						"sets",
+						"themes",
+						"elements",
+						"minifigs",
+						"inventory_minifigs"
+					]
+				}
+			},
+			{
+				"name": "If Load All Files",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.LoadAllFiles",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Append Inventory Sets",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Files",
+								"value": "inventory_sets"
+							}
+						},
+						{
+							"name": "Append Part Relationships",
+							"description": "part_relationships",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Files",
+								"value": "part_relationships"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "If Load All Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('Files')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Execute Lego HTTP to ADLS",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "HTTP_to_ADLS_then_SQLServer",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"fileName": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"LoadAllFiles": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"Files": {
+				"type": "Array"
+			},
+			"ListOfFiles": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": []
+	}
+}

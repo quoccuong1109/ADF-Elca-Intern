@@ -1,0 +1,36 @@
+{
+	"name": "SQLServer_DIL_Dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServer_DIL",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "String",
+				"defaultValue": "fileName"
+			},
+			"schema": {
+				"type": "string",
+				"defaultValue": "schema"
+			}
+		},
+		"folder": {
+			"name": "DIL"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().fileName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,305 @@
+{
+	"name": "Auto Processing - from ADSL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Mapping Table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select Src, Des, TableType from TrafficCop.Mapping\nwhere IsActive = 1 and Id = @{pipeline().parameters.id}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "Mapping",
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Check Table Type",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Lookup Mapping Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Lookup Mapping Table').output.value[0].TableType, 'F')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set variable schemaTableType D",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "schemaTableType",
+								"value": "fullextfinal"
+							}
+						},
+						{
+							"name": "Set variable nameTableTypeD",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nameTableType",
+								"value": "Dimension"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Set variable schemaTableType",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "schemaTableType",
+								"value": "'fullbyextfinal'"
+							}
+						},
+						{
+							"name": "Set variable nameTableType",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nameTableType",
+								"value": "Fact"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup Configuration File",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Check Table Type",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select FileName from TrafficCop.@{variables('nameTableType')}\nwhere IsTracked = 0 and FileName like '@{activity('Lookup Mapping Table').output.value[0].Src}%'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@variables('nameTableType')",
+								"type": "Expression"
+							},
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Configuration File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Configuration File').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Copy from ADLS to SQLServer",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlServerSink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"sink": {
+												"name": "Id",
+												"type": "Int32",
+												"physicalType": "int"
+											}
+										},
+										{
+											"sink": {
+												"name": "ABCCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"sink": {
+												"name": "StrategyID",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"sink": {
+												"name": "StrategyType",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"sink": {
+												"name": "StrategyDescr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Date_Time",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Date_Time",
+												"type": "DateTime",
+												"physicalType": "datetime"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": true,
+										"dateTimeFormat": "dd/MM/yyyy HH:mm:ss"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ADLS_Dataset_AP",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileNameCsv": {
+											"value": "@item().FileName",
+											"type": "Expression"
+										},
+										"schema": {
+											"value": "@variables('schemaTableType')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SQLServer_DIL_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": {
+											"value": "@activity('Lookup Mapping Table').output.value[0].Des",
+											"type": "Expression"
+										},
+										"schema": "tem"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"id": {
+				"type": "int",
+				"defaultValue": 0
+			}
+		},
+		"variables": {
+			"schemaTableType": {
+				"type": "String",
+				"defaultValue": "schemaTableType"
+			},
+			"nameTableType": {
+				"type": "String",
+				"defaultValue": "nameTableType"
+			}
+		},
+		"folder": {
+			"name": "BoardToDIL_ver0"
+		},
+		"annotations": []
+	}
+}

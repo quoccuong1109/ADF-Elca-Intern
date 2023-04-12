@@ -1,0 +1,114 @@
+{
+	"name": "Lego_HTTP_to_ADLS",
+	"properties": {
+		"description": "Copy themes.csv from http to ADLS",
+		"activities": [
+			{
+				"name": "Copy from HTTP to ADLS",
+				"description": "Copy file from Rebrickable to ADLS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "@{pipeline().parameters.Filename}.csv"
+					},
+					{
+						"name": "Destination",
+						"value": "logo//@{pipeline().parameters.Filename}.csv"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings",
+							"skipLineCount": 0
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "ABLB_phucelcablob",
+								"type": "LinkedServiceReference"
+							},
+							"path": {
+								"value": "lego/errors/@{pipeline().parameters.Filename}.csv",
+								"type": "Expression"
+							}
+						}
+					},
+					"dataIntegrationUnits": 2
+				},
+				"inputs": [
+					{
+						"referenceName": "HTTP_Lego",
+						"type": "DatasetReference",
+						"parameters": {
+							"Filename": {
+								"value": "@pipeline().parameters.Filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Lego",
+						"type": "DatasetReference",
+						"parameters": {
+							"Filename": {
+								"value": "@pipeline().parameters.Filename",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"Filename": {
+				"type": "String",
+				"defaultValue": "Filename"
+			}
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [
+			"Extract"
+		],
+		"lastPublishTime": "2021-07-01T04:02:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

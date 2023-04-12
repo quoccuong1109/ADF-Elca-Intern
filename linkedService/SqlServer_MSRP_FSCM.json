@@ -1,0 +1,17 @@
+{
+	"name": "SqlServer_MSRP_FSCM",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "connect to MSRP_FSCM",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=localhost;initial catalog=MSRP_FSCM;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJlYjdjYTQ3Mi1jODljLTQ1MGUtYjE5Mi1hMzE1NmQ2NmNiMWIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "phucelcaPCRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

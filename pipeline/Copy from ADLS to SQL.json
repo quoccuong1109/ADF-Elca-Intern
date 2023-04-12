@@ -1,0 +1,86 @@
+{
+	"name": "Copy from ADLS to SQL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy themes from ADLS to SQL",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS_Lego",
+						"type": "DatasetReference",
+						"parameters": {
+							"Filename": {
+								"value": "@pipeline().parameters.ADLS_fileName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerEntertainment",
+						"type": "DatasetReference",
+						"parameters": {
+							"SQLServer_fileName": {
+								"value": "@pipeline().parameters.SQLServer_fileName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"ADLS_fileName": {
+				"type": "String",
+				"defaultValue": "ADLS_fileName"
+			},
+			"SQLServer_fileName": {
+				"type": "String",
+				"defaultValue": "SQLServer_fileName"
+			}
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-01T09:34:31Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

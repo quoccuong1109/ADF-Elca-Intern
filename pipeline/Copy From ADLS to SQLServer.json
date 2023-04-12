@@ -1,0 +1,139 @@
+{
+	"name": "Copy From ADLS to SQLServer",
+	"properties": {
+		"activities": [
+			{
+				"name": "TraficCop From ADLS to SQLServer",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Src",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Src",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Des",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Des",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TableType",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TableType",
+									"type": "String",
+									"physicalType": "char"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileNameCsv": {
+								"value": "@pipeline().parameters.srcFileName",
+								"type": "Expression"
+							},
+							"schema": {
+								"value": "@pipeline().parameters.srcSchema",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@pipeline().parameters.desFileName",
+								"type": "Expression"
+							},
+							"schema": {
+								"value": "@pipeline().parameters.desSchema",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"srcFileName": {
+				"type": "string",
+				"defaultValue": "srcFileName"
+			},
+			"srcSchema": {
+				"type": "string",
+				"defaultValue": "srcSchema"
+			},
+			"desFileName": {
+				"type": "string",
+				"defaultValue": "desFileName"
+			},
+			"desSchema": {
+				"type": "string",
+				"defaultValue": "desSchema"
+			}
+		},
+		"folder": {
+			"name": "BoardToDIL_ver0"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-01T09:34:31Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

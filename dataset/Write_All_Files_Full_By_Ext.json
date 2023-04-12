@@ -1,0 +1,29 @@
+{
+	"name": "Write_All_Files_Full_By_Ext",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SQLServer_Project",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "String",
+				"defaultValue": "fileName"
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "full_by_ext_final",
+			"table": {
+				"value": "@dataset().fileName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

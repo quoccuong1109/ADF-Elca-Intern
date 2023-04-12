@@ -1,0 +1,243 @@
+{
+	"name": "Auto Processing - ImpactStatement",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup ImpactStatement File",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select FileName from TrafficCop.Fact\nwhere IsTracked = 0 and FileName like 'ImpactStatement%';\nupdate TrafficCop.Fact\nset IsTracked = 1\nwhere IsTracked = 0 and FileName like 'ImpactStatement%';",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "Fact",
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach ImpactStatement File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup ImpactStatement File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup ImpactStatement File').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy from SQLServer to SQLServer",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Impact Statement",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ImpactStatement",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Operation ABC",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ABCCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Strategy ID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "StrategyCode",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Impact Area",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ImpactArea",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Operation 2 char",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "2CharABCCode",
+												"type": "String",
+												"physicalType": "char"
+											}
+										},
+										{
+											"source": {
+												"name": "Plan",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Plan",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Impact Statement Name",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ImpactStatementShortDescr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Impact Statement Long Descr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ImpactStatementLongDescr",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "MSRP Code",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "MSRPCode",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Date_Time",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Date_Time",
+												"type": "DateTime",
+												"physicalType": "datetime"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": true,
+										"dateTimeFormat": "dd/MM/yyyy HH:mm:ss"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SQLServer_Board_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": {
+											"value": "@item().FileName",
+											"type": "Expression"
+										},
+										"schema": "full_by_ext_final"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SQLServer_DIL_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": "ImpactStatement",
+										"schema": "tem"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "BoardToDIL_ver1"
+		},
+		"annotations": []
+	}
+}

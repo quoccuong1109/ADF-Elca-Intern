@@ -1,0 +1,399 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"ABLB_phucelcablob": {
+			"type": "string"
+		},
+		"Http_lego": {
+			"type": "string"
+		},
+		"ADLS_phucelcadls": {
+			"type": "string"
+		},
+		"SQL_phucelca_Entertainment": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/HTTP_to_ADLS_then_SQLServer')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Orchestration pipeline executes pipelines to copy and transform data",
+				"activities": [
+					{
+						"name": "Execute HTTP to ADLS",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Lego_HTTP_to_ADLS",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"Filename": {
+									"value": "@pipeline().parameters.fileName",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "Execute ADLS to SQLServer on phucelca PC",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Execute HTTP to ADLS",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Copy from ADLS to SQL",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"ADLS_fileName": {
+									"value": "@pipeline().parameters.fileName",
+									"type": "Expression"
+								},
+								"SQLServer_fileName": {
+									"value": "@pipeline().parameters.fileName",
+									"type": "Expression"
+								}
+							}
+						}
+					}
+				],
+				"parameters": {
+					"fileName": {
+						"type": "string",
+						"defaultValue": "fileName"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-30T07:19:23Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_to_ADLS')]",
+				"[concat(variables('factoryId'), '/pipelines/Copy from ADLS to SQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_HTTP_to_ADLS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Copy themes.csv from http to ADLS",
+				"activities": [
+					{
+						"name": "Copy from HTTP to ADLS",
+						"description": "Copy file from Rebrickable to ADLS",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "@{pipeline().parameters.Filename}.csv"
+							},
+							{
+								"name": "Destination",
+								"value": "logo//@{pipeline().parameters.Filename}.csv"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings",
+									"skipLineCount": 0
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"logSettings": {
+								"enableCopyActivityLog": true,
+								"copyActivityLogSettings": {
+									"logLevel": "Warning",
+									"enableReliableLogging": false
+								},
+								"logLocationSettings": {
+									"linkedServiceName": {
+										"referenceName": "[parameters('ABLB_phucelcablob')]",
+										"type": "LinkedServiceReference"
+									},
+									"path": "lego/errors/@{pipeline().parameters.Filename}.csv"
+								}
+							},
+							"dataIntegrationUnits": 2
+						},
+						"inputs": [
+							{
+								"referenceName": "HTTP_Lego",
+								"type": "DatasetReference",
+								"parameters": {
+									"Filename": {
+										"value": "@pipeline().parameters.Filename",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Lego",
+								"type": "DatasetReference",
+								"parameters": {
+									"Filename": {
+										"value": "@pipeline().parameters.Filename",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"concurrency": 1,
+				"parameters": {
+					"Filename": {
+						"type": "String",
+						"defaultValue": "Filename"
+					}
+				},
+				"annotations": [
+					"Extract"
+				],
+				"lastPublishTime": "2021-07-01T04:02:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/HTTP_Lego')]",
+				"[concat(variables('factoryId'), '/datasets/ADLS_Lego')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy from ADLS to SQL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy themes from ADLS to SQL",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Lego",
+								"type": "DatasetReference",
+								"parameters": {
+									"Filename": {
+										"value": "@pipeline().parameters.ADLS_fileName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SqlServerEntertainment",
+								"type": "DatasetReference",
+								"parameters": {
+									"SQLServer_fileName": {
+										"value": "@pipeline().parameters.SQLServer_fileName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"ADLS_fileName": {
+						"type": "String",
+						"defaultValue": "ADLS_fileName"
+					},
+					"SQLServer_fileName": {
+						"type": "String",
+						"defaultValue": "SQLServer_fileName"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-07-01T09:34:31Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ADLS_Lego')]",
+				"[concat(variables('factoryId'), '/datasets/SqlServerEntertainment')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HTTP_Lego')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('Http_lego')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Filename": {
+						"type": "string",
+						"defaultValue": "Filename"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@{dataset().Filename}.csv.gz",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"compressionCodec": "gzip",
+					"compressionLevel": "Optimal",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Lego')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('ADLS_phucelcadls')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Filename": {
+						"type": "String",
+						"defaultValue": "Filename"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@{dataset().Filename}.csv",
+							"type": "Expression"
+						},
+						"fileSystem": "logo"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlServerEntertainment')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQL_phucelca_Entertainment')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SQLServer_fileName": {
+						"type": "String",
+						"defaultValue": "SQLServer_fileName"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "lego",
+					"table": {
+						"value": "@dataset().SQLServer_fileName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

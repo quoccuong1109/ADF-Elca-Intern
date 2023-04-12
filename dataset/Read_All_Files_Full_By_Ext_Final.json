@@ -1,0 +1,48 @@
+{
+	"name": "Read_All_Files_Full_By_Ext_Final",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_phucelcadls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileNameCsv": {
+				"type": "string",
+				"defaultValue": "fileNameCsv"
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@{dataset().fileNameCsv}.csv",
+					"type": "Expression"
+				},
+				"fileSystem": "fullbyextfinal"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	}
+}

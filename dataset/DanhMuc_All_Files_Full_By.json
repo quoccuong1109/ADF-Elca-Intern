@@ -1,0 +1,45 @@
+{
+	"name": "DanhMuc_All_Files_Full_By",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_phucelcadls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileNameCsv": {
+				"type": "string",
+				"defaultValue": "fileNameCsv"
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "danhmuc_fullby.csv",
+				"fileSystem": "fullbyextfinal"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	}
+}

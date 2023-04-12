@@ -1,0 +1,78 @@
+{
+	"name": "Auto Pipeline_ver1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Mapping Table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select Src, Des, TableType from TrafficCop.Mapping\nwhere IsActive = 1 and Id = @{pipeline().parameters.id}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "Mapping",
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Mapping Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Mapping Table').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Execute Pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Auto Processing - ImpactArea",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "BoardToDIL_ver1"
+		},
+		"annotations": []
+	}
+}

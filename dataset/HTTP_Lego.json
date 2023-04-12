@@ -1,0 +1,37 @@
+{
+	"name": "HTTP_Lego",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Http_lego",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Filename": {
+				"type": "string",
+				"defaultValue": "Filename"
+			}
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@{dataset().Filename}.csv.gz",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"rowDelimiter": "\n",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Optimal",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

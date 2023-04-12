@@ -1,0 +1,27 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "x",
+					"value": "a"
+				}
+			}
+		],
+		"variables": {
+			"x": {
+				"type": "String",
+				"defaultValue": "x"
+			}
+		},
+		"folder": {
+			"name": "BoardToDIL_ver1"
+		},
+		"annotations": []
+	}
+}

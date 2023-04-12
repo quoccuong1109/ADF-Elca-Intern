@@ -1,0 +1,36 @@
+{
+	"name": "SQLServer_Board_Dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SQLServer_Project",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "String",
+				"defaultValue": "fileName"
+			},
+			"schema": {
+				"type": "string",
+				"defaultValue": "schema"
+			}
+		},
+		"folder": {
+			"name": "DIL"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@substring(dataset().fileName, 0 , sub(length(dataset().fileName), 4))",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

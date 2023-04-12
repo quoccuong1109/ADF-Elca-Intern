@@ -1,0 +1,29 @@
+{
+	"name": "SqlServerEntertainment",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SQL_phucelca_Entertainment",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SQLServer_fileName": {
+				"type": "String",
+				"defaultValue": "SQLServer_fileName"
+			}
+		},
+		"folder": {
+			"name": "Self Training"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "lego",
+			"table": {
+				"value": "@dataset().SQLServer_fileName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,171 @@
+{
+	"name": "Auto Processing - Plan",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Plan File",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select FileName from TrafficCop.Dimension\nwhere IsTracked = 0 and FileName like 'Plan[_]%';\nupdate TrafficCop.Dimension\nset IsTracked = 1\nwhere IsTracked = 0 and FileName like 'Plan[_]%';",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQLServer_DIL_Dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "Dimension",
+							"schema": "TrafficCop"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Plan File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Plan File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Plan File').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy from SQLServer to SQLServer",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Operation ABC",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ABCCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Plan",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Plan",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Plan Desc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "PlanDescr",
+												"type": "String",
+												"physicalType": "varchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DateTime",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Date_Time",
+												"type": "DateTime",
+												"physicalType": "datetime"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": true,
+										"dateTimeFormat": "dd/MM/yyyy HH:mm:ss"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SQLServer_Board_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": {
+											"value": "@item().FileName",
+											"type": "Expression"
+										},
+										"schema": "full_ext_final"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SQLServer_DIL_Dataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": "Plan",
+										"schema": "tem"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "BoardToDIL_ver1"
+		},
+		"annotations": []
+	}
+}
