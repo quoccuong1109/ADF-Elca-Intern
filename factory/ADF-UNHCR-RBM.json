@@ -1,0 +1,9 @@
+{
+	"name": "ADF-UNHCR-RBM",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9ebcd2f8-d8f2-4c00-a3f5-40ac0b8365cb",
+		"tenantId": "7bbbced8-b31a-4a36-95bb-9f06bc9d72a6"
+	}
+}
